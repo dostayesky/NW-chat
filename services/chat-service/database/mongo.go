@@ -10,16 +10,12 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-var (
-	mongoURI = ""
-)
-
 type MongoStore struct {
 	client   *mongo.Client
 	database *mongo.Database
 }
 
-func NewMongoDB(ctx context.Context) *MongoStore {
+func NewMongoDB(ctx context.Context, mongoURI string) *MongoStore {
 	databaseName := "chat-db"
 
 	client, err := mongo.Connect(options.Client().ApplyURI(mongoURI))

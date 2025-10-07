@@ -4,7 +4,7 @@ import (
 	"context"
 	"os"
 
-	pb "github.com/wutthichod/sa-connext/shared/proto/User"
+	pb "github.com/wutthichod/sa-connext/shared/proto/user"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

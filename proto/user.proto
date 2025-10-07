@@ -6,7 +6,7 @@ option go_package = "shared/proto/user;user";
 
 service UserService {
     rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
-    rpc GetUser(GetUserByIdRequest) returns (GetUserByIdResponse)
+    // rpc GetUser(GetUserByIdRequest) returns (GetUserByIdResponse);
 }
 
 message CreateUserRequest {
@@ -15,7 +15,7 @@ message CreateUserRequest {
     Contact contact = 3;
     Education education = 4;
     string jobTitle = 5;
-    repeat string intersets = 6;
+    repeated string interests = 6;
 
 }
 
@@ -25,7 +25,7 @@ message CreateUserResponse {
 
 message Contact {
     string email = 1;
-    string phone = 1;
+    string phone = 2;
 }
 
 message Education {

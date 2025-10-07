@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package chats;
+
+option go_package = "shared/proto/chat;chat";
+
+service ChatService {
+    rpc CreateChat(CreateChatRequest) returns (CreateChatResponse);
+    rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
+}
+
+
+message CreateChatRequest {
+    string user_id = 1;
+    string recipient_id = 2;
+}
+
+message CreateChatResponse {
+    string user_id = 1;
+    string recipient_id = 2;
+    string chat_id = 3;      
+}
+
+message SendMessageRequest {
+    string from_user_id = 1;
+    string to_user_id = 2;
+    string message = 3;
+}
+
+message SendMessageResponse {
+    string message_id = 1;
+    string status = 2;
+}
