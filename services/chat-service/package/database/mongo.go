@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/v2/mongo"
-	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type MongoStore struct {
@@ -18,7 +18,7 @@ type MongoStore struct {
 func NewMongoDB(ctx context.Context, mongoURI string) *MongoStore {
 	databaseName := "chat-db"
 
-	client, err := mongo.Connect(options.Client().ApplyURI(mongoURI))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
 	if err != nil {
 		log.Fatalf("Failed to connect to MongoDB: %v", err)
 	}
@@ -42,7 +42,7 @@ func (m *MongoStore) RunMigrate() error {
 	defer cancel()
 
 	// Chat Collection
-	chatCollection := m.database.Collection("chat")
+	chatCollection := m.database.Collection("chats")
 	_, err := chatCollection.Indexes().CreateOne(ctx, mongo.IndexModel{
 		Keys: bson.D{{Key: "_id", Value: 1}},
 	})
@@ -69,8 +69,6 @@ func (m *MongoStore) RunMigrate() error {
 	if err != nil {
 		return err
 	}
-
-	log.Println("MongoDB migration completed successfully")
 	return nil
 }
 

@@ -4,18 +4,20 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
 	"github.com/wutthichod/sa-connext/services/api-gateway/grpc_clients/chat_client"
 	"github.com/wutthichod/sa-connext/services/api-gateway/grpc_clients/user_client"
 	"github.com/wutthichod/sa-connext/services/api-gateway/handlers"
 	"github.com/wutthichod/sa-connext/services/api-gateway/routes"
+	"github.com/wutthichod/sa-connext/shared/config"
 	"github.com/wutthichod/sa-connext/shared/messaging"
 )
 
-var (
-	rabbitMqURI = "amqps://nsemvrni:JFrEKtzZLj9jmmwXKZ_VSNZoP5M6u8ON@gorilla.lmq.cloudamqp.com/nsemvrni"
-)
-
 func main() {
+
+	godotenv.Load()
+	config := config.LoadConfig()
+
 	app := fiber.New()
 	connMgr := messaging.NewConnectionManager()
 
@@ -25,7 +27,7 @@ func main() {
 	// WS Connection Manager
 
 	// Initialize QueueConsumer
-	rabbit, err := messaging.NewRabbitMQ(rabbitMqURI) // your RabbitMQ client
+	rabbit, err := messaging.NewRabbitMQ(config.RabbitURI) // your RabbitMQ client
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -49,5 +51,5 @@ func main() {
 		chatHandler.ListenRabbit()
 	}()
 
-	log.Fatal(app.Listen(":8080"))
+	log.Fatal(app.Listen(config.Addr))
 }

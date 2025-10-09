@@ -5,9 +5,10 @@ import (
 	"log"
 	"net"
 
+	"github.com/joho/godotenv"
 	"github.com/wutthichod/sa-connext/services/chat-service/internal/service"
-	"github.com/wutthichod/sa-connext/services/chat-service/package/config"
 	"github.com/wutthichod/sa-connext/services/chat-service/package/database"
+	"github.com/wutthichod/sa-connext/shared/config"
 	"github.com/wutthichod/sa-connext/shared/messaging"
 	pb "github.com/wutthichod/sa-connext/shared/proto/chat"
 	"google.golang.org/grpc"
@@ -15,6 +16,7 @@ import (
 
 func main() {
 
+	godotenv.Load()
 	config := config.LoadConfig()
 
 	lis, err := net.Listen("tcp", config.Addr)
@@ -25,6 +27,10 @@ func main() {
 	ctx := context.Background()
 	mongoStore := database.NewMongoDB(ctx, config.MongoURI)
 	db := mongoStore.DB()
+
+	if err := mongoStore.RunMigrate(); err != nil {
+		log.Fatalf("Migration failed: %v", err)
+	}
 
 	// RabbitMQ connection
 	rmq, err := messaging.NewRabbitMQ(config.RabbitURI)

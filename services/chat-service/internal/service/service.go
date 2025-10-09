@@ -11,9 +11,9 @@ import (
 	"github.com/wutthichod/sa-connext/shared/contracts"
 	"github.com/wutthichod/sa-connext/shared/messaging"
 	pb "github.com/wutthichod/sa-connext/shared/proto/chat"
-	"github.com/wutthichod/sa-connext/shared/utils"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type ChatService struct {
@@ -33,9 +33,6 @@ func (s *ChatService) CreateChat(ctx context.Context, req *pb.CreateChatRequest)
 		"participants": bson.M{
 			"$all": []string{req.SenderId, req.RecipientId},
 		},
-		"$expr": bson.M{
-			"$eq": []interface{}{bson.M{"$size": "$participants"}, 2},
-		},
 	}
 
 	var existingChat models.Chat
@@ -44,7 +41,7 @@ func (s *ChatService) CreateChat(ctx context.Context, req *pb.CreateChatRequest)
 		return &pb.CreateChatResponse{
 			SenderId:    req.SenderId,
 			RecipientId: req.RecipientId,
-			ChatId:      existingChat.ID,
+			ChatId:      existingChat.ID.Hex(),
 		}, nil
 	}
 
@@ -62,7 +59,7 @@ func (s *ChatService) CreateChat(ctx context.Context, req *pb.CreateChatRequest)
 		return nil, fmt.Errorf("failed to create chat: %v", err)
 	}
 
-	chatID := utils.BsonObjectIDtoString(res.InsertedID)
+	chatID := res.InsertedID.(primitive.ObjectID).Hex()
 
 	return &pb.CreateChatResponse{
 		SenderId:    req.SenderId,
@@ -80,9 +77,6 @@ func (s *ChatService) SendMessage(ctx context.Context, req *pb.SendMessageReques
 	filter := bson.M{
 		"participants": bson.M{
 			"$all": []string{req.SenderId, req.RecipientId},
-		},
-		"$expr": bson.M{
-			"$eq": []interface{}{bson.M{"$size": "$participants"}, 2},
 		},
 	}
 
@@ -108,7 +102,7 @@ func (s *ChatService) SendMessage(ctx context.Context, req *pb.SendMessageReques
 		return nil, fmt.Errorf("failed to save message: %v", err)
 	}
 
-	messageID := utils.BsonObjectIDtoString(msgRes.InsertedID)
+	message.ID = msgRes.InsertedID.(primitive.ObjectID)
 
 	// Publish to RabbitMQ
 	messageData, err := json.Marshal(message)
@@ -126,7 +120,7 @@ func (s *ChatService) SendMessage(ctx context.Context, req *pb.SendMessageReques
 	}
 
 	return &pb.SendMessageResponse{
-		MessageId: messageID,
+		MessageId: message.ID.Hex(),
 		Status:    "sent",
 	}, nil
 }
