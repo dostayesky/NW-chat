@@ -3,7 +3,7 @@ services:
     image: postgres:latest
     container_name: postgres_new
     environment:
-      POSTGRES_DB: user
+      POSTGRES_DB: user-db
       POSTGRES_USER: newuser
       POSTGRES_PASSWORD: newpassword
     volumes:

@@ -7,9 +7,10 @@ import (
 	"context"
 	"errors"
 	"os"
-	"github.com/wutthichod/sa-connext/services/user-service/pkg/config"
+
 	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
+	"github.com/wutthichod/sa-connext/services/user-service/pkg/config"
 )
 
 type configContextKey struct{}
