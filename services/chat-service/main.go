@@ -17,15 +17,18 @@ import (
 func main() {
 
 	godotenv.Load("./.env")
-	config := config.LoadConfig()
+	config, err := config.InitConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	lis, err := net.Listen("tcp", config.Addr)
+	lis, err := net.Listen("tcp", config.App().Port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
 	ctx := context.Background()
-	mongoStore := database.NewMongoDB(ctx, config.MongoURI)
+	mongoStore := database.NewMongoDB(ctx, config.Database().DSN)
 	db := mongoStore.DB()
 
 	if err := mongoStore.RunMigrate(); err != nil {
@@ -33,7 +36,7 @@ func main() {
 	}
 
 	// RabbitMQ connection
-	rmq, err := messaging.NewRabbitMQ(config.RabbitURI)
+	rmq, err := messaging.NewRabbitMQ(config.RABBITMQ().URI)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -49,7 +52,7 @@ func main() {
 	chatService := service.NewChatService(db, rmq)
 	pb.RegisterChatServiceServer(chatServer, chatService)
 
-	log.Println("Server listening on ", config.Addr)
+	log.Println("Server listening on ", config.App().Port)
 	if err := chatServer.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}

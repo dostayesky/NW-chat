@@ -7,8 +7,8 @@ import (
 	"github.com/wutthichod/sa-connext/services/user-service/internal/handler"
 	"github.com/wutthichod/sa-connext/services/user-service/internal/repository"
 	"github.com/wutthichod/sa-connext/services/user-service/internal/service"
-	"github.com/wutthichod/sa-connext/services/user-service/pkg/config"
 	"github.com/wutthichod/sa-connext/services/user-service/pkg/database"
+	"github.com/wutthichod/sa-connext/shared/config"
 
 	"google.golang.org/grpc"
 )
@@ -29,7 +29,7 @@ func InitServer(cfg config.Config) error {
 
 	server := grpc.NewServer()
 	repo := repository.NewRepo(db)
-	service := service.NewService(repo)
+	service := service.NewService(repo, cfg)
 
 	handler.NewGRPCHandler(server, service)
 

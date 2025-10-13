@@ -4,8 +4,11 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/websocket/v2"
+	"github.com/wutthichod/sa-connext/services/api-gateway/contracts"
 	"github.com/wutthichod/sa-connext/services/api-gateway/grpc_clients/chat_client"
-	"github.com/wutthichod/sa-connext/services/api-gateway/models"
+	middlewares "github.com/wutthichod/sa-connext/services/api-gateway/pkg/middleware"
+	"github.com/wutthichod/sa-connext/shared/config"
 	"github.com/wutthichod/sa-connext/shared/messaging"
 	pb "github.com/wutthichod/sa-connext/shared/proto/chat"
 )
@@ -13,15 +16,49 @@ import (
 type ChatHandler struct {
 	ChatClient  *chat_client.ChatServiceClient
 	ConnManager *messaging.ConnectionManager
-	Queue       *messaging.QueueConsumer // listens to messages from chat service
+	Queue       *messaging.QueueConsumer
+	Config      *config.Config
 }
 
-func NewChatHandler(client *chat_client.ChatServiceClient, connManager *messaging.ConnectionManager, queue *messaging.QueueConsumer) *ChatHandler {
-	return &ChatHandler{ChatClient: client, ConnManager: connManager, Queue: queue}
+// Constructor
+func NewChatHandler(client *chat_client.ChatServiceClient, connManager *messaging.ConnectionManager, queue *messaging.QueueConsumer, config *config.Config) *ChatHandler {
+	return &ChatHandler{
+		ChatClient:  client,
+		ConnManager: connManager,
+		Queue:       queue,
+		Config:      config,
+	}
 }
 
+// Register all chat routes
+func (h *ChatHandler) RegisterRoutes(app *fiber.App) {
+	chatRoutes := app.Group("/chats")
+	chatRoutes.Post("/create", middlewares.JWTMiddleware(*h.Config), h.CreateChat)
+	chatRoutes.Post("/send", middlewares.JWTMiddleware(*h.Config), h.SendMessage)
+	chatRoutes.Get("/ws/:id", middlewares.JWTMiddleware(*h.Config), websocket.New(h.WebSocketHandler))
+}
+
+// WebSocket handler extracted for clarity
+func (h *ChatHandler) WebSocketHandler(c *websocket.Conn) {
+	userID := c.Params("id")
+	if userID == "" {
+		return
+	}
+
+	h.ConnManager.Add(userID, c)
+	defer h.ConnManager.Remove(userID)
+
+	// Keep connection alive
+	for {
+		if _, _, err := c.ReadMessage(); err != nil {
+			break
+		}
+	}
+}
+
+// Create a new chat via gRPC
 func (h *ChatHandler) CreateChat(c *fiber.Ctx) error {
-	var req models.CreateChatRequest
+	var req contracts.CreateChatRequest
 	if err := c.BodyParser(&req); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid JSON format")
 	}
@@ -41,8 +78,9 @@ func (h *ChatHandler) CreateChat(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(res)
 }
 
+// Send a message via gRPC
 func (h *ChatHandler) SendMessage(c *fiber.Ctx) error {
-	var req models.SendMessageRequest
+	var req contracts.SendMessageRequest
 	if err := c.BodyParser(&req); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid JSON format")
 	}
@@ -63,9 +101,9 @@ func (h *ChatHandler) SendMessage(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusOK)
 }
 
+// Start RabbitMQ consumer
 func (h *ChatHandler) ListenRabbit() {
-	err := h.Queue.Start()
-	if err != nil {
+	if err := h.Queue.Start(); err != nil {
 		log.Fatal("Failed to start RabbitMQ consumer:", err)
 	}
 }

@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	userServiceAddr = "localhost:9093"
+	userServiceAddr = "localhost:9094"
 )
 
 type UserServiceClient struct {

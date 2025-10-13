@@ -108,6 +108,7 @@ func (x *CreateUserRequest) GetInterests() []string {
 type CreateUserResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	JwtToken      string                 `protobuf:"bytes,2,opt,name=jwtToken,proto3" json:"jwtToken,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -149,6 +150,117 @@ func (x *CreateUserResponse) GetSuccess() bool {
 	return false
 }
 
+func (x *CreateUserResponse) GetJwtToken() string {
+	if x != nil {
+		return x.JwtToken
+	}
+	return ""
+}
+
+type LoginRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LoginRequest) Reset() {
+	*x = LoginRequest{}
+	mi := &file_user_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LoginRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LoginRequest) ProtoMessage() {}
+
+func (x *LoginRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_user_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LoginRequest.ProtoReflect.Descriptor instead.
+func (*LoginRequest) Descriptor() ([]byte, []int) {
+	return file_user_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *LoginRequest) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *LoginRequest) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+type LoginResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	JwtToken      string                 `protobuf:"bytes,2,opt,name=jwtToken,proto3" json:"jwtToken,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LoginResponse) Reset() {
+	*x = LoginResponse{}
+	mi := &file_user_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LoginResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LoginResponse) ProtoMessage() {}
+
+func (x *LoginResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_user_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LoginResponse.ProtoReflect.Descriptor instead.
+func (*LoginResponse) Descriptor() ([]byte, []int) {
+	return file_user_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *LoginResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *LoginResponse) GetJwtToken() string {
+	if x != nil {
+		return x.JwtToken
+	}
+	return ""
+}
+
 type Contact struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
@@ -159,7 +271,7 @@ type Contact struct {
 
 func (x *Contact) Reset() {
 	*x = Contact{}
-	mi := &file_user_proto_msgTypes[2]
+	mi := &file_user_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -171,7 +283,7 @@ func (x *Contact) String() string {
 func (*Contact) ProtoMessage() {}
 
 func (x *Contact) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[2]
+	mi := &file_user_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -184,7 +296,7 @@ func (x *Contact) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Contact.ProtoReflect.Descriptor instead.
 func (*Contact) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{2}
+	return file_user_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *Contact) GetEmail() string {
@@ -211,7 +323,7 @@ type Education struct {
 
 func (x *Education) Reset() {
 	*x = Education{}
-	mi := &file_user_proto_msgTypes[3]
+	mi := &file_user_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -223,7 +335,7 @@ func (x *Education) String() string {
 func (*Education) ProtoMessage() {}
 
 func (x *Education) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[3]
+	mi := &file_user_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -236,7 +348,7 @@ func (x *Education) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Education.ProtoReflect.Descriptor instead.
 func (*Education) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{3}
+	return file_user_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *Education) GetUniversity() string {
@@ -265,9 +377,16 @@ const file_user_proto_rawDesc = "" +
 	"\acontact\x18\x03 \x01(\v2\x0e.users.ContactR\acontact\x12.\n" +
 	"\teducation\x18\x04 \x01(\v2\x10.users.EducationR\teducation\x12\x1a\n" +
 	"\bjobTitle\x18\x05 \x01(\tR\bjobTitle\x12\x1c\n" +
-	"\tinterests\x18\x06 \x03(\tR\tinterests\".\n" +
+	"\tinterests\x18\x06 \x03(\tR\tinterests\"J\n" +
 	"\x12CreateUserResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\"5\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x1a\n" +
+	"\bjwtToken\x18\x02 \x01(\tR\bjwtToken\"@\n" +
+	"\fLoginRequest\x12\x14\n" +
+	"\x05email\x18\x01 \x01(\tR\x05email\x12\x1a\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\"E\n" +
+	"\rLoginResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x1a\n" +
+	"\bjwtToken\x18\x02 \x01(\tR\bjwtToken\"5\n" +
 	"\aContact\x12\x14\n" +
 	"\x05email\x18\x01 \x01(\tR\x05email\x12\x14\n" +
 	"\x05phone\x18\x02 \x01(\tR\x05phone\"A\n" +
@@ -275,10 +394,11 @@ const file_user_proto_rawDesc = "" +
 	"\n" +
 	"university\x18\x01 \x01(\tR\n" +
 	"university\x12\x14\n" +
-	"\x05major\x18\x02 \x01(\tR\x05major2P\n" +
+	"\x05major\x18\x02 \x01(\tR\x05major2\x84\x01\n" +
 	"\vUserService\x12A\n" +
 	"\n" +
-	"CreateUser\x12\x18.users.CreateUserRequest\x1a\x19.users.CreateUserResponseB\x18Z\x16shared/proto/user;userb\x06proto3"
+	"CreateUser\x12\x18.users.CreateUserRequest\x1a\x19.users.CreateUserResponse\x122\n" +
+	"\x05Login\x12\x13.users.LoginRequest\x1a\x14.users.LoginResponseB\x18Z\x16shared/proto/user;userb\x06proto3"
 
 var (
 	file_user_proto_rawDescOnce sync.Once
@@ -292,20 +412,24 @@ func file_user_proto_rawDescGZIP() []byte {
 	return file_user_proto_rawDescData
 }
 
-var file_user_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_user_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_user_proto_goTypes = []any{
 	(*CreateUserRequest)(nil),  // 0: users.CreateUserRequest
 	(*CreateUserResponse)(nil), // 1: users.CreateUserResponse
-	(*Contact)(nil),            // 2: users.Contact
-	(*Education)(nil),          // 3: users.Education
+	(*LoginRequest)(nil),       // 2: users.LoginRequest
+	(*LoginResponse)(nil),      // 3: users.LoginResponse
+	(*Contact)(nil),            // 4: users.Contact
+	(*Education)(nil),          // 5: users.Education
 }
 var file_user_proto_depIdxs = []int32{
-	2, // 0: users.CreateUserRequest.contact:type_name -> users.Contact
-	3, // 1: users.CreateUserRequest.education:type_name -> users.Education
+	4, // 0: users.CreateUserRequest.contact:type_name -> users.Contact
+	5, // 1: users.CreateUserRequest.education:type_name -> users.Education
 	0, // 2: users.UserService.CreateUser:input_type -> users.CreateUserRequest
-	1, // 3: users.UserService.CreateUser:output_type -> users.CreateUserResponse
-	3, // [3:4] is the sub-list for method output_type
-	2, // [2:3] is the sub-list for method input_type
+	2, // 3: users.UserService.Login:input_type -> users.LoginRequest
+	1, // 4: users.UserService.CreateUser:output_type -> users.CreateUserResponse
+	3, // 5: users.UserService.Login:output_type -> users.LoginResponse
+	4, // [4:6] is the sub-list for method output_type
+	2, // [2:4] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name
 	2, // [2:2] is the sub-list for extension extendee
 	0, // [0:2] is the sub-list for field type_name
@@ -322,7 +446,7 @@ func file_user_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_user_proto_rawDesc), len(file_user_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
