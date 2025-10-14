@@ -2,11 +2,16 @@ package main
 
 import (
 	"log"
+
+	"github.com/joho/godotenv"
+	"github.com/wutthichod/sa-connext/shared/config"
 	"github.com/wutthichod/sa-connext/shared/messaging"
 )
 
 func main() {
-	rb, err := messaging.NewRabbitMQ("amqps://nsemvrni:JFrEKtzZLj9jmmwXKZ_VSNZoP5M6u8ON@gorilla.lmq.cloudamqp.com/nsemvrni");
+	godotenv.Load("../.env") // ./ = โฟลเดอร์เดียวกับ main.go
+	config := config.LoadConfig()
+	rb, err := messaging.NewRabbitMQ(config.RabbitURI)
 	if err != nil {
 		log.Fatalf("Failed to connect to RabbitMQ: %v", err)
 	}
@@ -24,7 +29,7 @@ func main() {
     	log.Fatalf("Failed to setup email queue: %v", err)
 	}
 
-	emailConsumer := messaging.NewEmailConsumer(rb, queueName,"","")
+	emailConsumer := messaging.NewEmailConsumer(rb, queueName, config.Email, config.EmailPW)
 	if err := emailConsumer.Start(); err != nil {
 		log.Fatalf("Failed to start email consumer: %v", err)
 	}
