@@ -33,17 +33,22 @@ func (s *service) CreateUser(ctx context.Context, req *pb.CreateUserRequest) err
 
 	log.Printf("Mapped Model: %+v\n", userModel)
 
-	// Publish to RabbitMQ
-	event := contracts.EmailEvent{
-	To:      "brightka.ceo@gmail.com",
-	Subject: "Welcome!",
-	Body:    "Hi there, thanks for signing up!",
-	}
-	
-	if err := s.rb.PublishMessage(context.Background(),"notification.exchange","notification.email",event); err != nil {
-			log.Printf("Failed to publish email event: %v", err)
+	if err := s.repo.CreateUser(ctx, userModel); err != nil {
+		log.Printf("Failed to create user: %v", err)
+		return err
 	}
 
+	// Publish to RabbitMQ
+	event := contracts.EmailEvent{
+		To:      req.Contact.Email,
+		Subject: "Welcome!",
+		Body:    "Hi there, thanks for signing up!",
+	}
+
+	if err := s.rb.PublishMessage(context.Background(), "notification.exchange", "notification.email", event); err != nil {
+			log.Printf("Failed to publish email event: %v", err)
+	}
+	
 	// Save to DB
-	return s.repo.CreateUser(ctx, userModel)
+	return nil
 }
