@@ -1,4 +1,4 @@
-package models
+package contracts
 
 type CreateChatRequest struct {
 	SenderID    string `json:"sender_id"`

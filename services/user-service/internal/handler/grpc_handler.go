@@ -23,13 +23,30 @@ func NewGRPCHandler(server *grpc.Server, service service.Service) *gRPCHandler {
 
 func (h *gRPCHandler) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
 
-	if err := h.service.CreateUser(ctx, req); err != nil {
+	jwtToken, err := h.service.CreateUser(ctx, req)
+	if err != nil {
 		return &pb.CreateUserResponse{
 			Success: false,
 		}, err
 	}
 
 	return &pb.CreateUserResponse{
-		Success: true,
+		Success:  true,
+		JwtToken: *jwtToken,
+	}, nil
+}
+
+func (h *gRPCHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
+
+	jwtToken, err := h.service.Login(ctx, req.Email, req.Password)
+	if err != nil {
+		return &pb.LoginResponse{
+			Success: false,
+		}, err
+	}
+
+	return &pb.LoginResponse{
+		Success:  true,
+		JwtToken: *jwtToken,
 	}, nil
 }

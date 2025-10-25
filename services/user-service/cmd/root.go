@@ -10,14 +10,14 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
-	"github.com/wutthichod/sa-connext/services/user-service/pkg/config"
+	"github.com/wutthichod/sa-connext/shared/config"
 )
 
 type configContextKey struct{}
 
 // rootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
-	Use:   "roomie-finder",
+	Use:   "connext",
 	Short: "A brief description of your application",
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 

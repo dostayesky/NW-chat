@@ -8,7 +8,6 @@ import (
 	"github.com/wutthichod/sa-connext/services/api-gateway/grpc_clients/chat_client"
 	"github.com/wutthichod/sa-connext/services/api-gateway/grpc_clients/user_client"
 	"github.com/wutthichod/sa-connext/services/api-gateway/handlers"
-	"github.com/wutthichod/sa-connext/services/api-gateway/routes"
 	"github.com/wutthichod/sa-connext/shared/config"
 	"github.com/wutthichod/sa-connext/shared/messaging"
 )
@@ -16,18 +15,21 @@ import (
 func main() {
 
 	godotenv.Load("./.env") // ./ = โฟลเดอร์เดียวกับ main.go
-	config := config.LoadConfig()
+	config, err := config.InitConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	app := fiber.New()
 	connMgr := messaging.NewConnectionManager()
 
 	// Create gRPC Client
-	chatClient, _ := chat_client.NewChatServiceClient()
-	userClient, _ := user_client.NewUserServiceClient()
+	chatClient, _ := chat_client.NewChatServiceClient(config)
+	userClient, _ := user_client.NewUserServiceClient(config)
 	// WS Connection Manager
 
 	// Initialize QueueConsumer
-	rabbit, err := messaging.NewRabbitMQ(config.RabbitURI) // your RabbitMQ client
+	rabbit, err := messaging.NewRabbitMQ(config.RABBITMQ().URI) // your RabbitMQ client
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -40,16 +42,16 @@ func main() {
 	}
 
 	// Initialize ChatHandler
-	chatHandler := handlers.NewChatHandler(chatClient, connMgr, consumer)
+	chatHandler := handlers.NewChatHandler(chatClient, connMgr, consumer, &config)
 	userHandler := handlers.NewUserHandler(userClient)
 
 	// Register Routes
-	routes.RegisterUserRoutes(app, userHandler)
-	routes.RegisterChatRoutes(app, chatHandler)
+	chatHandler.RegisterRoutes(app)
+	userHandler.RegisterRoutes(app)
 
 	go func() {
 		chatHandler.ListenRabbit()
 	}()
 
-	log.Fatal(app.Listen(config.Addr))
+	log.Fatal(app.Listen(config.App().Gateway))
 }

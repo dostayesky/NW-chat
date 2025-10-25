@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/wutthichod/sa-connext/services/user-service/pkg/config"
+	"github.com/wutthichod/sa-connext/shared/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
