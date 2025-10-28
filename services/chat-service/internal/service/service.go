@@ -37,34 +37,27 @@ func (s *ChatService) CreateChat(ctx context.Context, req *pb.CreateChatRequest)
 
 	var existingChat models.Chat
 	err := chatCollection.FindOne(ctx, filter).Decode(&existingChat)
-	if err == nil {
-		return &pb.CreateChatResponse{
-			SenderId:    req.SenderId,
-			RecipientId: req.RecipientId,
-			ChatId:      existingChat.ID.Hex(),
-		}, nil
-	}
-
-	if err != mongo.ErrNoDocuments {
+	if err != nil && err != mongo.ErrNoDocuments {
 		return nil, fmt.Errorf("failed to check existing chat: %v", err)
-	}
+	} else if err != nil && err == mongo.ErrNoDocuments {
+		newChat := &models.Chat{
+			Participants: []string{req.SenderId, req.RecipientId},
+			CreatedAt:    time.Now(),
+			UpdatedAt:    time.Now(),
+		}
 
-	newChat := &models.Chat{
-		Participants: []string{req.SenderId, req.RecipientId},
-		CreatedAt:    time.Now(),
-	}
+		res, err := chatCollection.InsertOne(ctx, newChat)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create chat: %v", err)
+		}
 
-	res, err := chatCollection.InsertOne(ctx, newChat)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create chat: %v", err)
+		existingChat.ID = res.InsertedID.(primitive.ObjectID)
 	}
-
-	chatID := res.InsertedID.(primitive.ObjectID).Hex()
 
 	return &pb.CreateChatResponse{
 		SenderId:    req.SenderId,
 		RecipientId: req.RecipientId,
-		ChatId:      chatID,
+		ChatId:      existingChat.ID.Hex(),
 	}, nil
 }
 
@@ -100,6 +93,17 @@ func (s *ChatService) SendMessage(ctx context.Context, req *pb.SendMessageReques
 	msgRes, err := messageCollection.InsertOne(ctx, message)
 	if err != nil {
 		return nil, fmt.Errorf("failed to save message: %v", err)
+	}
+
+	filter = bson.M{"_id": existingChat.ID}
+	update := bson.M{
+		"$set": bson.M{
+			"updated_at": time.Now(),
+		},
+	}
+	_, err = chatCollection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update chat: %v", err)
 	}
 
 	message.ID = msgRes.InsertedID.(primitive.ObjectID)
@@ -178,8 +182,12 @@ func (s *ChatService) GetChats(ctx context.Context, req *pb.GetChatsRequest) (*p
 func (s *ChatService) GetMessagesByChatId(ctx context.Context, req *pb.GetMessagesByChatIdRequest) (*pb.GetMessagesByChatIdResponse, error) {
 	messageCollection := s.db.Collection("messages")
 
+	chatObjId, err := primitive.ObjectIDFromHex(req.ChatId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse string to object id: %v", err)
+	}
 	filter := bson.M{
-		"chat_id": req.ChatId,
+		"chat_id": chatObjId,
 	}
 
 	var messages []*pb.Message

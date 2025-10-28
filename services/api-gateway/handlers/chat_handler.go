@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/websocket/v2"
@@ -60,52 +61,72 @@ func (h *ChatHandler) WebSocketHandler(c *websocket.Conn) {
 	}
 }
 
-// Create a new chat via gRPC
 func (h *ChatHandler) CreateChat(c *fiber.Ctx) error {
+	senderID_uint := c.Locals("userID").(uint)
+	senderID := strconv.FormatUint(uint64(senderID_uint), 10)
 	var req dto.CreateChatRequest
 	if err := c.BodyParser(&req); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Invalid JSON format")
+		return c.Status(fiber.StatusBadRequest).JSON(contracts.Resp{
+			Success: false,
+			Message: "invalid json format",
+		})
 	}
 
-	if req.SenderID == "" || req.RecipientID == "" {
-		return fiber.NewError(fiber.StatusBadRequest, "SenderID and RecipientID are required")
+	if req.RecipientID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(contracts.Resp{
+			Success: false,
+			Message: "required recipientID",
+		})
 	}
 
-	res, err := h.ChatClient.CreateChat(c.Context(), &pb.CreateChatRequest{
-		SenderId:    req.SenderID,
+	_, err := h.ChatClient.CreateChat(c.Context(), &pb.CreateChatRequest{
+		SenderId:    senderID,
 		RecipientId: req.RecipientID,
 	})
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		return c.Status(fiber.StatusInternalServerError).JSON(contracts.Resp{
+			Success: false,
+			Message: err.Error(),
+		})
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(contracts.Resp{
 		Success: true,
-		Data:    res,
 	})
 }
 
 // Send a message via gRPC
 func (h *ChatHandler) SendMessage(c *fiber.Ctx) error {
+	senderID_uint := c.Locals("userID").(uint)
+	senderID := strconv.FormatUint(uint64(senderID_uint), 10)
 	var req dto.SendMessageRequest
 	if err := c.BodyParser(&req); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Invalid JSON format")
+		return c.Status(fiber.StatusBadRequest).JSON(contracts.Resp{
+			Success: false,
+			Message: "invalid json format",
+		})
 	}
 
-	if req.SenderID == "" || req.RecipientID == "" || req.Message == "" {
-		return fiber.NewError(fiber.StatusBadRequest, "SenderID, RecipientID, and Message are required")
+	if req.RecipientID == "" || req.Message == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(contracts.Resp{
+			Success: false,
+			Message: "required recipientID",
+		})
 	}
 
 	_, err := h.ChatClient.SendMessage(c.Context(), &pb.SendMessageRequest{
-		SenderId:    req.SenderID,
+		SenderId:    senderID,
 		RecipientId: req.RecipientID,
 		Message:     req.Message,
 	})
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		return c.Status(fiber.StatusInternalServerError).JSON(contracts.Resp{
+			Success: false,
+			Message: err.Error(),
+		})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(contracts.Resp{
+	return c.Status(fiber.StatusCreated).JSON(contracts.Resp{
 		Success: true,
 	})
 }

@@ -1,32 +1,11 @@
 {
 	"info": {
-		"_postman_id": "sa-connext-api-collection",
+		"_postman_id": "a4830895-8249-48e5-a101-5f7bf21fc0b5",
 		"name": "SA-Connext API Collection",
 		"description": "Complete API collection for testing all endpoints",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "33732235"
 	},
-	"auth": {
-		"type": "bearer",
-		"bearer": [
-			{
-				"key": "token",
-				"value": "{{auth_token}}",
-				"type": "string"
-			}
-		]
-	},
-	"variable": [
-		{
-			"key": "base_url",
-			"value": "http://localhost:8080",
-			"type": "string"
-		},
-		{
-			"key": "auth_token",
-			"value": "",
-			"type": "string"
-		}
-	],
 	"item": [
 		{
 			"name": "Users",
@@ -43,7 +22,8 @@
 									"    pm.environment.set('auth_token', jsonData.jwtToken);",
 									"    pm.collectionVariables.set('auth_token', jsonData.jwtToken);",
 									"}"
-								]
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -64,11 +44,17 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/users/register",
-							"host": ["{{base_url}}"],
-							"path": ["users", "register"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"register"
+							]
 						},
 						"description": "Register a new user. The JWT token is automatically saved for subsequent requests."
-					}
+					},
+					"response": []
 				},
 				{
 					"name": "Login User",
@@ -82,7 +68,8 @@
 									"    pm.environment.set('auth_token', jsonData.jwtToken);",
 									"    pm.collectionVariables.set('auth_token', jsonData.jwtToken);",
 									"}"
-								]
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -103,11 +90,17 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/users/login",
-							"host": ["{{base_url}}"],
-							"path": ["users", "login"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"login"
+							]
 						},
 						"description": "Login with email and password. The JWT token is automatically saved for subsequent requests."
-					}
+					},
+					"response": []
 				},
 				{
 					"name": "Get User By ID",
@@ -116,8 +109,13 @@
 						"header": [],
 						"url": {
 							"raw": "{{base_url}}/users/:id",
-							"host": ["{{base_url}}"],
-							"path": ["users", ":id"],
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								":id"
+							],
 							"variable": [
 								{
 									"key": "id",
@@ -127,7 +125,8 @@
 							]
 						},
 						"description": "Get user details by user ID. Requires authentication."
-					}
+					},
+					"response": []
 				},
 				{
 					"name": "Get Users By Event ID",
@@ -136,8 +135,14 @@
 						"header": [],
 						"url": {
 							"raw": "{{base_url}}/users/events/:event_id",
-							"host": ["{{base_url}}"],
-							"path": ["users", "events", ":event_id"],
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"events",
+								":event_id"
+							],
 							"variable": [
 								{
 									"key": "event_id",
@@ -147,7 +152,8 @@
 							]
 						},
 						"description": "Get all users participating in a specific event. Requires authentication."
-					}
+					},
+					"response": []
 				}
 			]
 		},
@@ -170,11 +176,17 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/events/",
-							"host": ["{{base_url}}"],
-							"path": ["events", ""]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"events",
+								""
+							]
 						},
 						"description": "Create a new event. Requires authentication."
-					}
+					},
+					"response": []
 				},
 				{
 					"name": "Get Event By ID",
@@ -183,8 +195,13 @@
 						"header": [],
 						"url": {
 							"raw": "{{base_url}}/events/:eid",
-							"host": ["{{base_url}}"],
-							"path": ["events", ":eid"],
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"events",
+								":eid"
+							],
 							"variable": [
 								{
 									"key": "eid",
@@ -194,7 +211,8 @@
 							]
 						},
 						"description": "Get event details by event ID. Requires authentication."
-					}
+					},
+					"response": []
 				},
 				{
 					"name": "Join Event",
@@ -212,11 +230,17 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/events/join",
-							"host": ["{{base_url}}"],
-							"path": ["events", "join"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"events",
+								"join"
+							]
 						},
 						"description": "Join an event using the event ID and joining code. Requires authentication."
-					}
+					},
+					"response": []
 				}
 			]
 		},
@@ -235,15 +259,21 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"sender_id\": \"1\",\n  \"recipient_id\": \"2\"\n}"
+							"raw": "{\n  \"recipient_id\": \"2\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/chats/create",
-							"host": ["{{base_url}}"],
-							"path": ["chats", "create"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"chats",
+								"create"
+							]
 						},
 						"description": "Create a new chat between two users. Requires authentication."
-					}
+					},
+					"response": []
 				},
 				{
 					"name": "Send Message",
@@ -257,15 +287,21 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"sender_id\": \"1\",\n  \"recipient_id\": \"2\",\n  \"message\": \"Hello! How are you?\"\n}"
+							"raw": "{\n  \"recipient_id\": \"20s0\",\n  \"message\": \"Hello! How are you?\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/chats/send",
-							"host": ["{{base_url}}"],
-							"path": ["chats", "send"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"chats",
+								"send"
+							]
 						},
 						"description": "Send a message in a chat. Requires authentication."
-					}
+					},
+					"response": []
 				},
 				{
 					"name": "Get All Chats",
@@ -274,35 +310,68 @@
 						"header": [],
 						"url": {
 							"raw": "{{base_url}}/chats/",
-							"host": ["{{base_url}}"],
-							"path": ["chats", ""]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"chats",
+								""
+							]
 						},
 						"description": "Get all chats for the authenticated user. Requires authentication."
-					}
+					},
+					"response": []
 				},
 				{
 					"name": "Get Chat Messages",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"method": "GET",
 						"header": [],
+						"body": {
+							"mode": "file",
+							"file": {}
+						},
 						"url": {
-							"raw": "{{base_url}}/chats/:id/messages",
-							"host": ["{{base_url}}"],
-							"path": ["chats", ":id", "messages"],
-							"variable": [
-								{
-									"key": "id",
-									"value": "chat_id_here",
-									"description": "Chat ID"
-								}
+							"raw": "{{base_url}}/chats/690042e39079c30fb5beafe9/messages",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"chats",
+								"690042e39079c30fb5beafe9",
+								"messages"
 							]
 						},
 						"description": "Get all messages for a specific chat. Requires authentication."
-					}
+					},
+					"response": []
 				}
 			]
 		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{auth_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"type": "string"
+		}
 	]
 }
-
-

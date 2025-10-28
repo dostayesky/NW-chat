@@ -4,7 +4,7 @@ GO_OUT := .
 
 .PHONY: generate-proto
 generate-proto:
-    protoc \
+	protoc \
         --proto_path=$(PROTO_DIR) \
         --go_out=$(GO_OUT) \
         --go-grpc_out=$(GO_OUT) \
@@ -77,11 +77,11 @@ clean:
 # NOTE: The EXEC_EXT variable was removed as it's not used here.
 stop:
 	@echo "--- Stopping all services on Windows (using taskkill) ---"
-	@cmd /c "taskkill /F /IM $(SERVICE_A_NAME).exe /T 2>nul" || true
-	@cmd /c "taskkill /F /IM $(SERVICE_B_NAME).exe /T 2>nul" || true
-	@cmd /c "taskkill /F /IM $(SERVICE_C_NAME).exe /T 2>nul" || true
-	@cmd /c "taskkill /F /IM $(SERVICE_D_NAME).exe /T 2>nul" || true
-	@cmd /c "taskkill /F /IM $(SERVICE_E_NAME).exe /T 2>nul" || true
+	@cmd /c "taskkill /F /IM $(SERVICE_A_NAME) /T 2>nul" || true
+	@cmd /c "taskkill /F /IM $(SERVICE_B_NAME) /T 2>nul" || true
+	@cmd /c "taskkill /F /IM $(SERVICE_C_NAME) /T 2>nul" || true
+	@cmd /c "taskkill /F /IM $(SERVICE_D_NAME) /T 2>nul" || true
+	@cmd /c "taskkill /F /IM $(SERVICE_E_NAME) /T 2>nul" || true
 	@echo "All services stopped."
 
 # 6. Target to stop all running services (macOS/Linux Version)
