@@ -11,7 +11,7 @@ docker_build('connext-notification-service:local', 'services/notification-servic
 # Put all YAML files here (Tilt will apply them in order)
 k8s_yaml([
   'k8s/app-config.yaml',
-  'k8s/app-secret.yaml',
+  'k8s/app-secrets.yaml',
   'k8s/db-secrets.yaml',
   'k8s/postgres-db.yaml',
   'k8s/pgadmin-db.yaml',
@@ -34,9 +34,9 @@ k8s_yaml([
 # -- Register resources for Tilt UI (optional port-forwards) ------------------
 # Names here should match the metadata.name of your Deployments or Services
 k8s_resource('api-gateway-deployment', port_forwards=8080)
-k8s_resource('user-service-deployment', port_forwards=8081)
-k8s_resource('chat-service-deployment', port_forwards=8082)
-k8s_resource('event-service-deployment', port_forwards=8084)
+k8s_resource('user-service-deployment')
+k8s_resource('chat-service-deployment')
+k8s_resource('event-service-deployment')
 
 # If you want to add resource dependencies or custom behavior, you can use
 # k8s_resource(..., resource_deps=['other-resource-name']) but avoid passing
