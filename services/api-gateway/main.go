@@ -13,10 +13,11 @@ import (
 
 func main() {
 
-	err := godotenv.Load("./services/api-gateway/.env") // ./ = โฟลเดอร์เดียวกับ main.go
-	if err != nil {
-		log.Fatal(err)
-	}
+	godotenv.Load("./services/api-gateway/.env")
+	// err := godotenv.Load("./services/api-gateway/.env") // ./ = โฟลเดอร์เดียวกับ main.go
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 	config, err := config.InitConfig()
 	if err != nil {
 		log.Fatal(err)

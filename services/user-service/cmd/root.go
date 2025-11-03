@@ -6,7 +6,7 @@ package cmd
 import (
 	"context"
 	"errors"
-	"log"
+	// "log"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -21,12 +21,12 @@ var RootCmd = &cobra.Command{
 	Use:   "connext",
 	Short: "A brief description of your application",
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-
-		err := godotenv.Load("./services/user-service/.env")
-		if err != nil {
-			// This will print the specific error and stop the program
-			log.Fatalf("CRITICAL: Error loading .env file: %v", err)
-		}
+		godotenv.Load("./services/user-service/.env")
+		// err := godotenv.Load("./services/user-service/.env")
+		// if err != nil {
+		// 	// This will print the specific error and stop the program
+		// 	log.Fatalf("CRITICAL: Error loading .env file: %v", err)
+		// }
 
 		cfg, err := config.InitConfig()
 		if err != nil {

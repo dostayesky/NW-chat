@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway-svc
+spec:
+  # 1. ใช้ NodePort เพื่อเปิด Port สู่ภายนอก
+  type: NodePort 
+  
+  selector:
+    app: api-gateway # ชี้ไปที่ Pod ของ Gateway
+  ports:
+  - protocol: TCP
+    port: 8080 # Port ภายใน (ตาม GATEWAY_ADDR)
+    targetPort: 8080 # Port ของ Container
+    
+    # 2. Map ไปที่ 30080 (ตามที่เราตั้งใน kind-config.yaml)
+    nodePort: 30080

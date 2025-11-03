@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  # App services addresses
+  GATEWAY_ADDR: ":8080" # Gateway ยังคงฟังที่ port 8080 (อันนี้ถูกแล้ว)
+  
+  # 
+  # 👇 [แก้ไขตรงนี้]
+  # เปลี่ยนจาก localhost (:) ไปเป็นชื่อ Service
+  #
+  USER_ADDR: "user-service-svc:8081"
+  CHAT_ADDR: "chat-service-svc:8082"         # (เตรียมไว้สำหรับ chat)
+  NOTI_ADDR: "notification-service-svc:8083" # (เตรียมไว้สำหรับ noti)
+  EVENT_ADDR: "event-service-svc:8084"       # (เตรียมไว้สำหรับ event)
+  ORGANIZER_ADDR: "organizer-service-svc:8085" # (เตรียมไว้สำหรับ organizer)
+
+  # Database Name
+  DATABASE_NAME: "user-db"

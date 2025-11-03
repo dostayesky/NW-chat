@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service-svc # 👈 นี่คือ "ชื่อ" หรือ "ที่อยู่" ใหม่
+spec:
+  # 
+  # type: ClusterIP (นี่คือ default)
+  # หมายความว่า Service นี้จะเข้าถึงได้จาก "ภายใน" cluster เท่านั้น
+  #
+  selector:
+    app: user-service # 👈 ชี้ไปที่ Pod ที่มี label 'app: user-service'
+  ports:
+  - protocol: TCP
+    port: 8081        # 👈 Port ที่ Service นี้จะรับฟัง
+    targetPort: 8081  # 👈 Port ที่ Container (Pod) เปิดรอ
