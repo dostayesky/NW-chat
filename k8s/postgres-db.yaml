@@ -3,6 +3,9 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: postgres-pvc
+  annotations:
+    #ห้ามลบตอน tilt down (teardown)
+    tilt.dev/down-policy: 'keep'
 spec:
   accessModes:
     - ReadWriteOnce # อนุญาตให้ Pod เดียว (DB) เขียนได้
