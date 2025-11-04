@@ -55,3 +55,7 @@ func (c *UserServiceClient) GetUserByEventID(ctx context.Context, req *pb.GetUse
 func (c *UserServiceClient) AddUserToEvent(ctx context.Context, req *pb.AddUserToEventRequest) (*pb.AddUserToEventResponse, error) {
 	return c.Client.AddUserToEvent(ctx, req)
 }
+
+func (c *UserServiceClient) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UpdateUserResponse, error) {
+	return c.Client.UpdateUser(ctx, req)
+}

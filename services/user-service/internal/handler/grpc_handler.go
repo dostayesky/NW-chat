@@ -2,9 +2,9 @@ package handler
 
 import (
 	"context"
-	"strconv"
 
 	"github.com/wutthichod/sa-connext/services/user-service/internal/service"
+	grpcerrors "github.com/wutthichod/sa-connext/shared/errors"
 	pb "github.com/wutthichod/sa-connext/shared/proto/user"
 	"google.golang.org/grpc"
 )
@@ -23,12 +23,9 @@ func NewGRPCHandler(server *grpc.Server, service service.Service) *gRPCHandler {
 }
 
 func (h *gRPCHandler) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
-
 	jwtToken, err := h.service.CreateUser(ctx, req)
 	if err != nil {
-		return &pb.CreateUserResponse{
-			Success: false,
-		}, err
+		return nil, grpcerrors.HandleError(err)
 	}
 
 	return &pb.CreateUserResponse{
@@ -38,12 +35,9 @@ func (h *gRPCHandler) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 }
 
 func (h *gRPCHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
-
 	jwtToken, err := h.service.Login(ctx, req)
 	if err != nil {
-		return &pb.LoginResponse{
-			Success: false,
-		}, err
+		return nil, grpcerrors.HandleError(err)
 	}
 
 	return &pb.LoginResponse{
@@ -53,51 +47,33 @@ func (h *gRPCHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Logi
 }
 
 func (h *gRPCHandler) GetUserById(ctx context.Context, req *pb.GetUserByIdRequest) (*pb.GetUserByIdResponse, error) {
-
-	userID, err := strconv.ParseUint(req.GetUserId(), 10, 64)
+	user, err := h.service.GetUserById(ctx, req)
 	if err != nil {
-		return nil, err
-	}
-	user, err := h.service.GetUserById(ctx, &pb.GetUserByIdRequest{
-		UserId: strconv.FormatUint(userID, 10),
-	})
-	if err != nil {
-		return nil, err
+		return nil, grpcerrors.HandleError(err)
 	}
 	return user, nil
-
 }
 
 func (h *gRPCHandler) GetUsersByEventId(ctx context.Context, req *pb.GetUsersByEventIdRequest) (*pb.GetUsersByEventIdResponse, error) {
-	eventID, err := strconv.ParseUint(req.GetEventId(), 10, 64)
+	users, err := h.service.GetUsersByEventId(ctx, req)
 	if err != nil {
-		return nil, err
-	}
-	users, err := h.service.GetUsersByEventId(ctx, &pb.GetUsersByEventIdRequest{
-		EventId: strconv.FormatUint(eventID, 10),
-	})
-	if err != nil {
-		return nil, err
+		return nil, grpcerrors.HandleError(err)
 	}
 	return users, nil
 }
 
 func (h *gRPCHandler) AddUserToEvent(ctx context.Context, req *pb.AddUserToEventRequest) (*pb.AddUserToEventResponse, error) {
+	result, err := h.service.AddUserToEvent(ctx, req)
+	if err != nil {
+		return nil, grpcerrors.HandleError(err)
+	}
+	return result, nil
+}
 
-	userId, err := strconv.ParseUint(req.GetUserId(), 10, 64)
+func (h *gRPCHandler) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UpdateUserResponse, error) {
+	result, err := h.service.UpdateUser(ctx, req)
 	if err != nil {
-		return nil, err
-	}
-	eventID, err := strconv.ParseUint(req.GetEventId(), 10, 64)
-	if err != nil {
-		return nil, err
-	}
-	result, err := h.service.AddUserToEvent(ctx, &pb.AddUserToEventRequest{
-		UserId:  strconv.FormatUint(userId, 10),
-		EventId: strconv.FormatUint(eventID, 10),
-	})
-	if err != nil {
-		return nil, err
+		return nil, grpcerrors.HandleError(err)
 	}
 	return result, nil
 }

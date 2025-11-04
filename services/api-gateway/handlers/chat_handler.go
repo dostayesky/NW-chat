@@ -9,6 +9,7 @@ import (
 	"github.com/gofiber/websocket/v2"
 	"github.com/wutthichod/sa-connext/services/api-gateway/clients"
 	"github.com/wutthichod/sa-connext/services/api-gateway/dto"
+	"github.com/wutthichod/sa-connext/services/api-gateway/pkg/errors"
 	"github.com/wutthichod/sa-connext/services/api-gateway/pkg/middlewares"
 	"github.com/wutthichod/sa-connext/shared/config"
 	"github.com/wutthichod/sa-connext/shared/contracts"
@@ -84,10 +85,7 @@ func (h *ChatHandler) CreateChat(c *fiber.Ctx) error {
 		RecipientId: req.RecipientID,
 	})
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(contracts.Resp{
-			Success: false,
-			Message: err.Error(),
-		})
+		return errors.HandleGRPCError(c, err)
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(contracts.Resp{
@@ -120,10 +118,7 @@ func (h *ChatHandler) SendMessage(c *fiber.Ctx) error {
 		Message:     req.Message,
 	})
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(contracts.Resp{
-			Success: false,
-			Message: err.Error(),
-		})
+		return errors.HandleGRPCError(c, err)
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(contracts.Resp{
@@ -138,13 +133,10 @@ func (h *ChatHandler) GetChats(c *fiber.Ctx) error {
 		UserId: fmt.Sprintf("%d", userID),
 	})
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		return errors.HandleGRPCError(c, err)
 	}
 	if !res.Success {
-		return c.Status(fiber.StatusInternalServerError).JSON(contracts.Resp{
-			Success: false,
-			Message: "Internal server error",
-		})
+		return errors.HandleGRPCError(c, err)
 	}
 
 	var chats []dto.GetChatsResponse
@@ -173,13 +165,10 @@ func (h *ChatHandler) GetChatMessagesByChatId(c *fiber.Ctx) error {
 		ChatId: chatID,
 	})
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		return errors.HandleGRPCError(c, err)
 	}
 	if !res.Success {
-		return c.Status(fiber.StatusInternalServerError).JSON(contracts.Resp{
-			Success: false,
-			Message: "Internal server error",
-		})
+		return errors.HandleGRPCError(c, err)
 	}
 
 	var messages []dto.GetMessagesByChatIdResponse

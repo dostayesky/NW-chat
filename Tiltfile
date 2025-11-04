@@ -55,14 +55,20 @@ k8s_yaml([
     'infra/k8s/postgres-db.yaml',
     'infra/k8s/pgadmin-db.yaml',
     
-    # Services
+    # Services - Deployments
     'infra/k8s/user-service-deployment.yaml',
     'infra/k8s/chat-service-deployment.yaml',
     'infra/k8s/event-service-deployment.yaml',
     'infra/k8s/notification-service-deployment.yaml',
     
+    # Services - Services
+    'infra/k8s/user-service.yaml',
+    'infra/k8s/chat-service.yaml',
+    'infra/k8s/event-service.yaml',
+    
     # Gateway
-    'infra/k8s/api-gateway-service-deployment.yaml',
+    'infra/k8s/api-gateway-deployment.yaml',
+    'infra/k8s/api-gateway-service.yaml',
 ])
 
 # ============================================================================
@@ -142,10 +148,7 @@ k8s_resource(
     workload='api-gateway-deployment',
     new_name='API Gateway',
     resource_deps=[
-        'User Service',
-        'Chat Service',
-        'Event Service',
-        'Notification Service',
+
         'App Config & Secrets'
     ],
     port_forwards=8080,

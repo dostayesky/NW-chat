@@ -1,12 +1,14 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/wutthichod/sa-connext/services/api-gateway/clients"
 	"github.com/wutthichod/sa-connext/services/api-gateway/dto"
+	"github.com/wutthichod/sa-connext/services/api-gateway/pkg/errors"
 	"github.com/wutthichod/sa-connext/services/api-gateway/pkg/middlewares"
 	"github.com/wutthichod/sa-connext/shared/config"
 	"github.com/wutthichod/sa-connext/shared/contracts"
@@ -26,6 +28,8 @@ func (h *UserHandler) RegisterRoutes(app *fiber.App) {
 	userRoutes := app.Group("/users")
 	userRoutes.Post("/register", h.Register)
 	userRoutes.Post("/login", h.Login)
+	userRoutes.Get("/me", middlewares.JWTMiddleware(*h.Config), h.GetMe)
+	userRoutes.Put("/me", middlewares.JWTMiddleware(*h.Config), h.UpdateProfile)
 	userRoutes.Get("/:id", middlewares.JWTMiddleware(*h.Config), h.GetUserByID)
 	userRoutes.Get("/events/:eid", middlewares.JWTMiddleware(*h.Config), h.GetUserByEventID)
 }
@@ -34,7 +38,7 @@ func (h *UserHandler) Register(c *fiber.Ctx) error {
 	// Parse incoming JSON
 	var req dto.RegisterRequest
 	if err := c.BodyParser(&req); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Invalid JSON format")
+		return errors.HandleGRPCError(c, err)
 	}
 
 	// Call gRPC CreateUser
@@ -53,7 +57,7 @@ func (h *UserHandler) Register(c *fiber.Ctx) error {
 		Interests: req.Interests,
 	})
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		return errors.HandleGRPCError(c, err)
 	}
 
 	c.Cookie(&fiber.Cookie{
@@ -75,7 +79,7 @@ func (h *UserHandler) Register(c *fiber.Ctx) error {
 func (h *UserHandler) Login(c *fiber.Ctx) error {
 	var req dto.LoginRequest
 	if err := c.BodyParser(&req); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Invalid JSON format")
+		return errors.HandleGRPCError(c, err)
 	}
 
 	res, err := h.UserClient.Client.Login(c.Context(), &pb.LoginRequest{
@@ -84,7 +88,7 @@ func (h *UserHandler) Login(c *fiber.Ctx) error {
 	})
 	if err != nil {
 		log.Println(err)
-		return fiber.NewError(fiber.StatusUnauthorized, "Invalid Credentials")
+		return errors.HandleGRPCError(c, err)
 	}
 
 	c.Cookie(&fiber.Cookie{
@@ -116,19 +120,11 @@ func (h *UserHandler) GetUserByID(c *fiber.Ctx) error {
 		UserId: userID,
 	})
 	if err != nil {
-		log.Printf("Error calling user service: %v", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(contracts.Resp{
-			Success: false,
-			Message: "Internal server error",
-		})
+		return errors.HandleGRPCError(c, err)
 	}
 
 	if !res.Success {
-		log.Printf("Error calling user service: %v", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(contracts.Resp{
-			Success: false,
-			Message: "Internal server error",
-		})
+		return errors.HandleGRPCError(c, err)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(contracts.Resp{
@@ -151,21 +147,72 @@ func (h *UserHandler) GetUserByEventID(c *fiber.Ctx) error {
 		EventId: eventID,
 	})
 	if err != nil {
-		log.Printf("Error calling user service: %v", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(contracts.Resp{
-			Success: false,
-			Message: "Internal server error",
-		})
+		return errors.HandleGRPCError(c, err)
 	}
 	if !res.Success {
-		return c.Status(fiber.StatusInternalServerError).JSON(contracts.Resp{
-			Success: false,
-			Message: "Internal server error",
-		})
+		return errors.HandleGRPCError(c, err)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(contracts.Resp{
 		Success: true,
 		Data:    res.GetUsers(),
+	})
+}
+
+func (h *UserHandler) GetMe(c *fiber.Ctx) error {
+	ctx := c.Context()
+	userID := c.Locals("userID").(uint)
+
+	res, err := h.UserClient.GetUserByID(ctx, &pb.GetUserByIdRequest{
+		UserId: fmt.Sprintf("%d", userID),
+	})
+	if err != nil {
+		return errors.HandleGRPCError(c, err)
+	}
+
+	if !res.Success {
+		return errors.HandleGRPCError(c, err)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(contracts.Resp{
+		Success: true,
+		Data:    res.GetUser(),
+	})
+}
+
+func (h *UserHandler) UpdateProfile(c *fiber.Ctx) error {
+	ctx := c.Context()
+	userID := c.Locals("userID").(uint)
+
+	var req dto.UpdateUserRequest
+	if err := c.BodyParser(&req); err != nil {
+		return errors.HandleGRPCError(c, err)
+	}
+
+	res, err := h.UserClient.UpdateUser(ctx, &pb.UpdateUserRequest{
+		UserId:    fmt.Sprintf("%d", userID),
+		Username:  req.Username,
+		JobTitle:  req.JobTitle,
+		Interests: req.Interests,
+		Contact: &pb.Contact{
+			Email: req.Contact.Email,
+			Phone: req.Contact.Phone,
+		},
+		Education: &pb.Education{
+			University: req.Education.University,
+			Major:      req.Education.Major,
+		},
+	})
+	if err != nil {
+		return errors.HandleGRPCError(c, err)
+	}
+
+	if !res.Success {
+		return errors.HandleGRPCError(c, err)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(contracts.Resp{
+		Success: true,
+		Data:    res.GetUser(),
 	})
 }

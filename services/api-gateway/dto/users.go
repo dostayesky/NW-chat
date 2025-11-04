@@ -33,3 +33,11 @@ type User struct {
 	JobTitle  string   `json:"job_title"`
 	Interests []string `json:"interests"`
 }
+
+type UpdateUserRequest struct {
+	Username  string    `json:"username" validate:"omitempty,min=2,max=50"`
+	Contact   Contact   `json:"contact" validate:"omitempty"`
+	Education Education `json:"education" validate:"omitempty"`
+	JobTitle  string    `json:"jobTitle" validate:"omitempty"`
+	Interests []string  `json:"interests" validate:"omitempty"`
+}

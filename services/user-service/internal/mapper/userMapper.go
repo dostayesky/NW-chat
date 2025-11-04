@@ -78,3 +78,28 @@ func ToPbUser(user *models.User) *pb.User {
 		},
 	}
 }
+
+// FromPbUpdateRequest maps Protobuf UpdateUserRequest → DTO
+func FromPbUpdateRequest(req *pb.UpdateUserRequest) *dto.UserDTO {
+	dtoUser := &dto.UserDTO{
+		Username:  req.Username,
+		JobTitle:  req.JobTitle,
+		Interests: req.Interests,
+	}
+
+	if req.Contact != nil {
+		dtoUser.Contact = dto.ContactDTO{
+			Email: req.Contact.Email,
+			Phone: req.Contact.Phone,
+		}
+	}
+
+	if req.Education != nil {
+		dtoUser.Education = dto.EducationDTO{
+			University: req.Education.University,
+			Major:      req.Education.Major,
+		}
+	}
+
+	return dtoUser
+}

@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/wutthichod/sa-connext/services/api-gateway/clients"
 	"github.com/wutthichod/sa-connext/services/api-gateway/dto"
+	"github.com/wutthichod/sa-connext/services/api-gateway/pkg/errors"
 	"github.com/wutthichod/sa-connext/services/api-gateway/pkg/middlewares"
 	"github.com/wutthichod/sa-connext/shared/config"
 	"github.com/wutthichod/sa-connext/shared/contracts"
@@ -31,20 +32,10 @@ func (h *EventHandler) RegisterRoutes(app *fiber.App) {
 
 func (h *EventHandler) GetAllEvents(c *fiber.Ctx) error {
 	ctx := c.Context()
-
 	res, err := h.EventClient.GetAllEvents(ctx)
 	if err != nil {
-		log.Printf("Error calling event service: %v", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(contracts.Resp{
-			Success: false,
-			Message: "Internal server error",
-		})
+		return errors.HandleGRPCError(c, err)
 	}
-
-	if !res.Success {
-		return c.Status(res.StatusCode).JSON(res)
-	}
-
 	return c.Status(res.StatusCode).JSON(res)
 }
 

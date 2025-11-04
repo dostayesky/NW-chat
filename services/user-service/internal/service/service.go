@@ -5,15 +5,18 @@ import (
 	"errors"
 	"log"
 	"strconv"
+	"strings"
 
 	"github.com/wutthichod/sa-connext/services/user-service/internal/mapper"
 	"github.com/wutthichod/sa-connext/services/user-service/internal/repository"
 	"github.com/wutthichod/sa-connext/shared/auth"
 	"github.com/wutthichod/sa-connext/shared/config"
 	"github.com/wutthichod/sa-connext/shared/contracts"
+	grpcerrors "github.com/wutthichod/sa-connext/shared/errors"
 	"github.com/wutthichod/sa-connext/shared/messaging"
 	pb "github.com/wutthichod/sa-connext/shared/proto/user"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type Service interface {
@@ -22,6 +25,7 @@ type Service interface {
 	GetUserById(ctx context.Context, pbReq *pb.GetUserByIdRequest) (*pb.GetUserByIdResponse, error)
 	GetUsersByEventId(ctx context.Context, pbReq *pb.GetUsersByEventIdRequest) (*pb.GetUsersByEventIdResponse, error)
 	AddUserToEvent(ctx context.Context, pbReq *pb.AddUserToEventRequest) (*pb.AddUserToEventResponse, error)
+	UpdateUser(ctx context.Context, pbReq *pb.UpdateUserRequest) (*pb.UpdateUserResponse, error)
 }
 
 type service struct {
@@ -64,7 +68,11 @@ func (s *service) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*s
 	createdUser, err := s.repo.CreateUser(ctx, userModel)
 	if err != nil {
 		log.Printf("Failed to create user: %v", err)
-		return nil, err
+		// Check for duplicate key errors
+		if strings.Contains(err.Error(), "duplicate") || strings.Contains(err.Error(), "unique") {
+			return nil, grpcerrors.AlreadyExists("User", "username or email")
+		}
+		return nil, grpcerrors.DatabaseError(err.Error())
 	}
 	// Generate JWT token
 	token, err := auth.GenerateToken(s.cfg.JWT().Token, createdUser.ID)
@@ -79,15 +87,18 @@ func (s *service) Login(ctx context.Context, pbReq *pb.LoginRequest) (*string, e
 
 	user, err := s.repo.GetUserByEmail(ctx, pbReq.Email)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, grpcerrors.Unauthorized("invalid email or password")
+		}
+		return nil, grpcerrors.DatabaseError(err.Error())
 	}
 	if user == nil {
-		return nil, errors.New("invalid email or password")
+		return nil, grpcerrors.Unauthorized("invalid email or password")
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(pbReq.Password))
 	if err != nil {
-		return nil, errors.New("invalid email or password")
+		return nil, grpcerrors.Unauthorized("invalid email or password")
 	}
 
 	token, err := auth.GenerateToken(s.cfg.JWT().Token, user.ID)
@@ -101,14 +112,20 @@ func (s *service) Login(ctx context.Context, pbReq *pb.LoginRequest) (*string, e
 func (s *service) GetUserById(ctx context.Context, pbReq *pb.GetUserByIdRequest) (*pb.GetUserByIdResponse, error) {
 	userId, err := strconv.ParseUint(pbReq.UserId, 10, 64)
 	if err != nil {
-		return nil, err
+		return nil, grpcerrors.InvalidInput("invalid user ID format", map[string]string{
+			"field": "user_id",
+			"value": pbReq.UserId,
+		})
 	}
 	user, err := s.repo.GetUserById(ctx, uint(userId))
 	if err != nil {
-		return nil, err
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, grpcerrors.NotFound("User")
+		}
+		return nil, grpcerrors.DatabaseError(err.Error())
 	}
 	if user == nil {
-		return nil, errors.New("user not found")
+		return nil, grpcerrors.NotFound("User")
 	}
 	return &pb.GetUserByIdResponse{
 		Success: true,
@@ -119,11 +136,14 @@ func (s *service) GetUserById(ctx context.Context, pbReq *pb.GetUserByIdRequest)
 func (s *service) GetUsersByEventId(ctx context.Context, pbReq *pb.GetUsersByEventIdRequest) (*pb.GetUsersByEventIdResponse, error) {
 	eventId, err := strconv.ParseUint(pbReq.EventId, 10, 64)
 	if err != nil {
-		return nil, err
+		return nil, grpcerrors.InvalidInput("invalid event ID format", map[string]string{
+			"field": "event_id",
+			"value": pbReq.EventId,
+		})
 	}
 	users, err := s.repo.GetUsersByEventId(ctx, uint(eventId))
 	if err != nil {
-		return nil, err
+		return nil, grpcerrors.DatabaseError(err.Error())
 	}
 
 	pbUsers := make([]*pb.User, len(users))
@@ -139,17 +159,78 @@ func (s *service) GetUsersByEventId(ctx context.Context, pbReq *pb.GetUsersByEve
 func (s *service) AddUserToEvent(ctx context.Context, pbReq *pb.AddUserToEventRequest) (*pb.AddUserToEventResponse, error) {
 	eventId, err := strconv.ParseUint(pbReq.EventId, 10, 64)
 	if err != nil {
-		return nil, err
+		return nil, grpcerrors.InvalidInput("invalid event ID format", map[string]string{
+			"field": "event_id",
+			"value": pbReq.EventId,
+		})
 	}
 	userId, err := strconv.ParseUint(pbReq.UserId, 10, 64)
 	if err != nil {
-		return nil, err
+		return nil, grpcerrors.InvalidInput("invalid user ID format", map[string]string{
+			"field": "user_id",
+			"value": pbReq.UserId,
+		})
 	}
 	err = s.repo.AddUserToEvent(ctx, uint(eventId), uint(userId))
 	if err != nil {
-		return nil, err
+		return nil, grpcerrors.DatabaseError(err.Error())
 	}
 	return &pb.AddUserToEventResponse{
 		Success: true,
+	}, nil
+}
+
+func (s *service) UpdateUser(ctx context.Context, pbReq *pb.UpdateUserRequest) (*pb.UpdateUserResponse, error) {
+	userId, err := strconv.ParseUint(pbReq.UserId, 10, 64)
+	if err != nil {
+		log.Printf("Error parsing user ID: %v", err)
+		return nil, grpcerrors.InvalidInput("invalid user ID format", map[string]string{
+			"field": "user_id",
+			"value": pbReq.UserId,
+		})
+	}
+
+	// Get existing user to preserve contact and education IDs
+	existingUser, err := s.repo.GetUserById(ctx, uint(userId))
+	if err != nil {
+		log.Printf("Error getting user by ID: %v", err)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, grpcerrors.NotFound("User")
+		}
+		return nil, grpcerrors.DatabaseError(err.Error())
+	}
+	if existingUser == nil {
+		log.Printf("User not found")
+		return nil, grpcerrors.NotFound("User")
+	}
+
+	// PB → DTO
+	dtoUser := mapper.FromPbUpdateRequest(pbReq)
+
+	// DTO → Model
+	userModel := mapper.ToUserModel(dtoUser)
+
+	// Preserve existing contact and education IDs if they exist
+	if existingUser.ContactID != 0 {
+		userModel.Contact.ID = existingUser.ContactID
+		userModel.ContactID = existingUser.ContactID
+	}
+	if existingUser.EducationID != 0 {
+		userModel.Education.ID = existingUser.EducationID
+		userModel.EducationID = existingUser.EducationID
+	}
+
+	// Update user
+	updatedUser, err := s.repo.UpdateUser(ctx, uint(userId), userModel)
+	if err != nil {
+		if strings.Contains(err.Error(), "duplicate") || strings.Contains(err.Error(), "unique") {
+			return nil, grpcerrors.AlreadyExists("User", "username or email")
+		}
+		return nil, grpcerrors.DatabaseError(err.Error())
+	}
+
+	return &pb.UpdateUserResponse{
+		Success: true,
+		User:    mapper.ToPbUser(updatedUser),
 	}, nil
 }

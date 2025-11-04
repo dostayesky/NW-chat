@@ -10,6 +10,7 @@ service UserService {
     rpc GetUserById(GetUserByIdRequest) returns (GetUserByIdResponse);
     rpc GetUsersByEventId(GetUsersByEventIdRequest) returns (GetUsersByEventIdResponse);
     rpc AddUserToEvent(AddUserToEventRequest) returns (AddUserToEventResponse);
+    rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
 }
 
 message CreateUserRequest {
@@ -82,4 +83,18 @@ message Contact {
 message Education {
     string university = 1;
     string major = 2;
+}
+
+message UpdateUserRequest {
+    string user_id = 1;
+    string username = 2;
+    Contact contact = 3;
+    Education education = 4;
+    string jobTitle = 5;
+    repeated string interests = 6;
+}
+
+message UpdateUserResponse {
+    bool success = 1;
+    User user = 2;
 }
