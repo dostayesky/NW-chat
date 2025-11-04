@@ -17,11 +17,23 @@ spec:
         image: connext-api-gateway:latest
         imagePullPolicy: IfNotPresent
         ports:
-        - containerPort: 8080 # 👈 Port จาก GATEWAY_ADDR
-        
-        # 👇 ดึง ENV ทั้งหมดที่ Gateway ต้องการ
+        - containerPort: 8080
         envFrom:
         - configMapRef:
             name: app-config
         - secretRef:
             name: app-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway-svc
+spec:
+  type: NodePort
+  selector:
+    app: api-gateway
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+    nodePort: 30080

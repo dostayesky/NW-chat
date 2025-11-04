@@ -28,3 +28,15 @@ spec:
           env:
             - name: CHAT_ADDR
               value: ":8082"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chat-service-svc
+spec:
+  selector:
+    app: chat-service
+  ports:
+    - protocol: TCP
+      port: 8082
+      targetPort: 8082

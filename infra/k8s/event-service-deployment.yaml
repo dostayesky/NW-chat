@@ -26,3 +26,15 @@ spec:
           env:
             - name: EVENT_ADDR
               value: ":8084"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: event-service-svc
+spec:
+  selector:
+    app: event-service
+  ports:
+    - protocol: TCP
+      port: 8084
+      targetPort: 8084

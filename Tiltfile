@@ -4,35 +4,35 @@
 docker_build(
     'connext-api-gateway:latest',
     '.', # 👈 Context คือราก
-    dockerfile='services/api-gateway/Dockerfile',
+    dockerfile='infra/dockerfile/api-gateway',
     build_args={'SERVICE_NAME': 'api-gateway'}, # 👈 เพิ่ม Args
     only=['shared/', 'services/api-gateway/', 'go.mod', 'go.sum'] # 👈 เฝ้าดูไฟล์
 )
 docker_build(
     'connext-user-service:latest',
     '.',
-    dockerfile='services/user-service/Dockerfile',
+    dockerfile='infra/dockerfile/user-service',
     build_args={'SERVICE_NAME': 'user-service'},
     only=['shared/', 'services/user-service/', 'go.mod', 'go.sum']
 )
 docker_build(
     'connext-chat-service:latest',
     '.',
-    dockerfile='services/chat-service/Dockerfile',
+    dockerfile='infra/dockerfile/chat-service',
     build_args={'SERVICE_NAME': 'chat-service'},
     only=['shared/', 'services/chat-service/', 'go.mod', 'go.sum']
 )
 docker_build(
     'connext-event-service:latest',
     '.',
-    dockerfile='services/event-service/Dockerfile',
+    dockerfile='infra/dockerfile/event-service',
     build_args={'SERVICE_NAME': 'event-service'},
     only=['shared/', 'services/event-service/', 'go.mod', 'go.sum']
 )
 docker_build(
     'connext-notification-service:latest',
     '.',
-    dockerfile='services/notification-service/Dockerfile',
+    dockerfile='infra/dockerfile/notification-service',
     build_args={'SERVICE_NAME': 'notification-service'},
     only=['shared/', 'services/notification-service/', 'go.mod', 'go.sum']
 )
@@ -40,25 +40,21 @@ docker_build(
 # --- 2. Apply ALL k8s YAMLs ---
 # (This part is correct)
 k8s_yaml([
-    'k8s/app-config.yaml',
-    'k8s/app-secrets.yaml',
-    'k8s/db-secrets.yaml',
-    'k8s/postgres-db.yaml',
-    'k8s/pgadmin-db.yaml',
+    'infra/k8s/app-config.yaml',
+    'infra/k8s/app-secrets.yaml',
+    'infra/k8s/db-secrets.yaml',
+    'infra/k8s/postgres-db.yaml',
+    'infra/k8s/pgadmin-db.yaml',
 
-    'k8s/api-gateway-deployment.yaml',
-    'k8s/api-gateway-service.yaml',
+    'infra/k8s/api-gateway-service-deployment.yaml',
 
-    'k8s/user-service-deployment.yaml',
-    'k8s/user-service.yaml',
+    'infra/k8s/user-service-deployment.yaml',
 
-    'k8s/chat-service-deployment.yaml',
-    'k8s/chat-service.yaml',
+    'infra/k8s/chat-service-deployment.yaml',
 
-    'k8s/event-service-deployment.yaml',
-    'k8s/event-service.yaml',
+    'infra/k8s/event-service-deployment.yaml',
 
-    'k8s/notification-service-deployment.yaml',
+    'infra/k8s/notification-service-deployment.yaml',
 ])
 
 # --- 3. Register Resources (with Dependencies) ---
