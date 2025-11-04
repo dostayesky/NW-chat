@@ -11,6 +11,7 @@ import (
 type EventRepositoryInterface interface {
 	Create(ctx context.Context, event *models.Event) error
 	GetByID(ctx context.Context, id uint) (*models.Event, error)
+	GetAll(ctx context.Context) ([]*models.Event, error)
 }
 
 // eventRepository implements the interface using GORM
@@ -38,4 +39,14 @@ func (r *eventRepository) GetByID(ctx context.Context, id uint) (*models.Event, 
 		return nil, err
 	}
 	return &event, nil
+}
+
+// GetAll retrieves all events from the database
+func (r *eventRepository) GetAll(ctx context.Context) ([]*models.Event, error) {
+	var events []*models.Event
+	err := r.db.WithContext(ctx).Find(&events).Error
+	if err != nil {
+		return nil, err
+	}
+	return events, nil
 }

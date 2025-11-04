@@ -22,6 +22,7 @@ var (
 
 type EventServiceInterface interface {
 	GetEvent(ctx context.Context, id uint) (*contracts.GetEventResponse, error)
+	GetAllEvents(ctx context.Context) ([]*contracts.GetEventResponse, error)
 	CreateEvent(ctx context.Context, req *contracts.CreateEventRequest) (*contracts.CreateEventResponse, error)
 	JoinEvent(ctx context.Context, req *contracts.JoinEventRequest) (bool, error)
 }
@@ -94,6 +95,31 @@ func (s *eventService) GetEvent(ctx context.Context, id uint) (*contracts.GetEve
 		JoiningCode: event.JoiningCode,
 		OrganizerId: event.OrganizerID,
 	}, nil
+}
+
+// GetAllEvents handles the logic for retrieving all events
+func (s *eventService) GetAllEvents(ctx context.Context) ([]*contracts.GetEventResponse, error) {
+	// 1. Call Repository
+	events, err := s.repo.GetAll(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get events from db: %w", err)
+	}
+
+	// 2. Transform Response (DB Model -> Response DTO)
+	var responses []*contracts.GetEventResponse
+	for _, event := range events {
+		responses = append(responses, &contracts.GetEventResponse{
+			EventID:     event.ID,
+			Name:        event.Name,
+			Detail:      event.Detail,
+			Location:    event.Location,
+			Date:        event.Date.Format(time.RFC3339),
+			JoiningCode: event.JoiningCode,
+			OrganizerId: event.OrganizerID,
+		})
+	}
+
+	return responses, nil
 }
 
 func (s *eventService) JoinEvent(ctx context.Context, req *contracts.JoinEventRequest) (bool, error) {

@@ -18,9 +18,10 @@ type RouteDefinition struct {
 }
 
 var routes = map[string]RouteDefinition{
-	"createEvent": {Method: "POST", Path: "/events/"},
-	"getEvent":    {Method: "GET", Path: "/events/%s"},
-	"joinEvent":   {Method: "POST", Path: "/events/join"},
+	"createEvent":  {Method: "POST", Path: "/events/"},
+	"getEvent":     {Method: "GET", Path: "/events/%s"},
+	"getAllEvents": {Method: "GET", Path: "/events/"},
+	"joinEvent":    {Method: "POST", Path: "/events/join"},
 }
 
 type EventServiceClient struct {
@@ -83,6 +84,35 @@ func (c *EventServiceClient) GetEventById(ctx context.Context, eventID string) (
 	}
 
 	url := fmt.Sprintf(c.addr+route.Path, eventID)
+
+	httpReq, err := http.NewRequestWithContext(ctx, route.Method, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create http request: %w", err)
+	}
+	httpReq.Header.Set("Accept", "application/json")
+
+	httpRes, err := c.client.Do(httpReq)
+	if err != nil {
+		return nil, fmt.Errorf("request failed: %w", err)
+	}
+
+	defer httpRes.Body.Close()
+
+	var res contracts.Resp
+	if err := json.NewDecoder(httpRes.Body).Decode(&res); err != nil {
+		return nil, fmt.Errorf("failed to decode response body: %w", err)
+	}
+
+	return &res, nil
+}
+
+func (c *EventServiceClient) GetAllEvents(ctx context.Context) (*contracts.Resp, error) {
+	route, ok := routes["getAllEvents"]
+	if !ok {
+		return nil, fmt.Errorf("route 'getAllEvents' not defined")
+	}
+
+	url := c.addr + route.Path
 
 	httpReq, err := http.NewRequestWithContext(ctx, route.Method, url, nil)
 	if err != nil {

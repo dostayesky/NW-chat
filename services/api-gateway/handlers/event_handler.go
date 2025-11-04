@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
@@ -22,9 +23,29 @@ func NewEventHandler(client *clients.EventServiceClient, config *config.Config) 
 
 func (h *EventHandler) RegisterRoutes(app *fiber.App) {
 	userRoutes := app.Group("/events")
+	userRoutes.Get("/", middlewares.JWTMiddleware(*h.Config), h.GetAllEvents)
 	userRoutes.Get("/:eid", middlewares.JWTMiddleware(*h.Config), h.GetEventById)
 	userRoutes.Post("/", middlewares.JWTMiddleware(*h.Config), h.CreateEvent)
 	userRoutes.Post("/join", middlewares.JWTMiddleware(*h.Config), h.JoinEvent)
+}
+
+func (h *EventHandler) GetAllEvents(c *fiber.Ctx) error {
+	ctx := c.Context()
+
+	res, err := h.EventClient.GetAllEvents(ctx)
+	if err != nil {
+		log.Printf("Error calling event service: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(contracts.Resp{
+			Success: false,
+			Message: "Internal server error",
+		})
+	}
+
+	if !res.Success {
+		return c.Status(res.StatusCode).JSON(res)
+	}
+
+	return c.Status(res.StatusCode).JSON(res)
 }
 
 func (h *EventHandler) GetEventById(c *fiber.Ctx) error {
@@ -56,6 +77,7 @@ func (h *EventHandler) GetEventById(c *fiber.Ctx) error {
 
 func (h *EventHandler) CreateEvent(c *fiber.Ctx) error {
 	ctx := c.Context()
+	userID := c.Locals("userID").(uint)
 
 	req := &dto.CreateEventRequest{}
 	if err := c.BodyParser(req); err != nil {
@@ -66,7 +88,7 @@ func (h *EventHandler) CreateEvent(c *fiber.Ctx) error {
 	}
 
 	contract := contracts.CreateEventRequest(*req)
-
+	contract.OrganizerId = fmt.Sprintf("%d", userID)
 	res, err := h.EventClient.CreateEvent(ctx, &contract)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(contracts.Resp{

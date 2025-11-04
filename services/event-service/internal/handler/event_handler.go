@@ -23,6 +23,7 @@ func NewEventHandler(s service.EventServiceInterface) *EventHandler {
 // RegisterRoutes sets up the routes for the event service
 func (h *EventHandler) RegisterRoutes(app *fiber.App) {
 	events := app.Group("/events")
+	events.Get("/", h.getAllEvents)
 	events.Get("/:id", h.getEvent)
 	events.Post("/", h.createEvent)
 	events.Post("/join", h.joinEvent)
@@ -59,6 +60,23 @@ func (h *EventHandler) createEvent(c *fiber.Ctx) error {
 		Success:    true,
 		StatusCode: http.StatusCreated,
 		Data:       res,
+	})
+}
+
+func (h *EventHandler) getAllEvents(c *fiber.Ctx) error {
+	events, err := h.service.GetAllEvents(c.Context())
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(contracts.Resp{
+			Success:    false,
+			StatusCode: http.StatusInternalServerError,
+			Message:    err.Error(),
+		})
+	}
+
+	return c.Status(http.StatusOK).JSON(contracts.Resp{
+		Success:    true,
+		StatusCode: http.StatusOK,
+		Data:       events,
 	})
 }
 
